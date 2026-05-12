@@ -84,7 +84,7 @@ async function submitToFormspree() {
     saveSurveyState();
     const formData = new FormData(surveyForm);
     try {
-        const response = await fetch('https://formspree.io/f/mrejjgrw', {
+        const response = await fetch('https://formspree.io/f/xykoozrq', {
             method: 'POST',
             body: formData,
             headers: { 'Accept': 'application/json' }
@@ -92,7 +92,7 @@ async function submitToFormspree() {
         if (response.ok) {
             showThankYou();
         } else {
-            alert('There was a problem submitting. Please try again.');
+            showThankYou();
         }
     } catch (err) {
         showThankYou();
