@@ -1,0 +1,607 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap');
+
+/* ── Variables ── */
+:root {
+  --primary-color:   #E31F01;
+  --primary-dark:    #340405;
+  --primary-light:   #FCE8E5;
+  --secondary-color: #8E7D4A;
+  --success-color:   #10b981;
+  --danger-color:    #ef4444;
+  --text-color:      #000000;
+  --text-light:      #FCE8E5;
+  --border-color:    #e5e7eb;
+  --bg-color:        #f9fafb;
+  --white:           #ffffff;
+  --shadow:          0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-lg:       0 10px 15px -3px rgba(0,0,0,0.1);
+  --red-glow:        rgba(227,31,1,0.15);
+  --radius:          16px;
+  --radius-sm:       10px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Body ── */
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--primary-dark);
+  color: var(--text-light);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(ellipse 600px 400px at 10% 20%, rgba(227,31,1,0.1) 0%, transparent 60%),
+    radial-gradient(ellipse 500px 500px at 90% 80%, rgba(142,125,74,0.08) 0%, transparent 60%),
+    linear-gradient(rgba(255,255,255,.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.015) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 52px 52px, 52px 52px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ── Container ── */
+.survey-container {
+  position: relative;
+  z-index: 1;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 3rem 1.25rem 6rem;
+}
+
+/* ── Header ── */
+.survey-header {
+  margin-bottom: 2.5rem;
+  animation: headerIn .6s ease both;
+}
+@keyframes headerIn {
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.survey-header h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(3rem, 8vw, 5rem);
+  letter-spacing: .04em;
+  line-height: .95;
+  color: var(--white);
+  margin-bottom: .4rem;
+}
+
+.survey-header .subtitle {
+  font-size: .95rem;
+  color: rgba(252,232,229,.5);
+  font-weight: 300;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+/* ── Progress bar ── */
+.progress-bar {
+  background: rgba(255,255,255,.08);
+  border-radius: 999px;
+  height: 3px;
+  margin-bottom: .6rem;
+  overflow: visible;
+  position: relative;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+  border-radius: 999px;
+  transition: width .5s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 0 10px rgba(227,31,1,.5);
+  position: relative;
+}
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  right: -4px; top: 50%;
+  transform: translateY(-50%);
+  width: 10px; height: 10px;
+  background: var(--white);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--primary-color);
+}
+.progress-text {
+  font-size: .72rem;
+  color: rgba(252,232,229,.35);
+  font-weight: 500;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-bottom: 0;
+}
+.progress-text span { color: var(--primary-color); font-weight: 700; }
+
+/* ── Success message ── */
+.success-message {
+  background: rgba(16,185,129,.08);
+  border: 1px solid rgba(16,185,129,.25);
+  border-radius: var(--radius);
+  padding: 2.5rem;
+  text-align: center;
+}
+.success-message h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.2rem;
+  letter-spacing: .04em;
+  color: var(--white);
+  margin-bottom: .5rem;
+}
+.success-message p { color: rgba(252,232,229,.6); line-height: 1.65; margin-bottom: .5rem; }
+
+/* ════════════════════════════════════════
+   SECTION VISIBILITY  ← the key fix
+   script.js adds/removes .active
+════════════════════════════════════════ */
+.survey-section {
+  display: none;        /* hidden by default */
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+.survey-section.active {
+  display: block;       /* only the active section shows */
+  animation: sectionIn .4s cubic-bezier(.4,0,.2,1) both;
+}
+@keyframes sectionIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Section legend (title bar) ── */
+.survey-section > legend {
+  display: block;
+  width: 100%;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.9rem;
+  letter-spacing: .05em;
+  color: var(--white);
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.08);
+  border-left: 4px solid var(--primary-color);
+  border-radius: var(--radius) var(--radius) 0 0;
+  padding: 1.4rem 1.8rem 1.2rem;
+  margin-bottom: 0;
+  float: none;
+}
+
+/* ── Form group (question card) ── */
+.form-group {
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.07);
+  border-top: none;
+  border-left: 4px solid rgba(227,31,1,.25);
+  padding: 1.4rem 1.8rem;
+  margin: 0;
+  transition: border-left-color .2s;
+}
+.form-group:hover {
+  border-left-color: var(--primary-color);
+}
+.form-group:last-of-type {
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+
+/* ════════════════════════════════════════
+   QUESTION TITLE
+   Only targets direct label children of
+   .form-group, NOT .radio-option labels
+════════════════════════════════════════ */
+.form-group > label {
+  display: block;
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--white);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+  cursor: default;
+  /* reset anything that could bleed from option styles */
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  transform: none;
+}
+
+/* ── Radio group ── */
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+
+/* ── Radio option (clickable row) ── */
+label.radio-option {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  padding: .75rem 1rem;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color .18s, transform .18s, color .18s;
+  background: rgba(255,255,255,.02);
+  color: rgba(252,232,229,.7);
+  font-size: .9rem;
+  font-weight: 400;
+  line-height: 1.4;
+  position: relative;
+  overflow: hidden;
+  /* must override .form-group > label above */
+  margin-bottom: 0;
+}
+label.radio-option::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--red-glow);
+  opacity: 0;
+  transition: opacity .18s;
+  pointer-events: none;
+}
+label.radio-option:hover {
+  border-color: rgba(227,31,1,.45);
+  color: var(--white);
+  transform: translateX(4px);
+}
+label.radio-option:hover::before { opacity: 1; }
+label.radio-option:has(input:checked) {
+  border-color: var(--primary-color);
+  color: var(--white);
+}
+label.radio-option:has(input:checked)::before { opacity: 1; }
+
+/* Custom radio button */
+label.radio-option input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 17px; height: 17px;
+  min-width: 17px;
+  border: 1.5px solid rgba(255,255,255,.2);
+  border-radius: 50%;
+  background: rgba(0,0,0,.25);
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  transition: border-color .18s, background .18s;
+}
+label.radio-option input[type="radio"]:checked {
+  border-color: var(--primary-color);
+  background: var(--primary-color);
+  box-shadow: inset 0 0 0 3px rgba(52,4,5,.65);
+}
+
+label.radio-option span {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Checkbox group ── */
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+
+/* ── Checkbox option (clickable row) ── */
+label.checkbox-option {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  padding: .75rem 1rem;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color .18s, transform .18s, color .18s;
+  background: rgba(255,255,255,.02);
+  color: rgba(252,232,229,.7);
+  font-size: .9rem;
+  font-weight: 400;
+  line-height: 1.4;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+label.checkbox-option::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--red-glow);
+  opacity: 0;
+  transition: opacity .18s;
+  pointer-events: none;
+}
+label.checkbox-option:hover {
+  border-color: rgba(227,31,1,.45);
+  color: var(--white);
+  transform: translateX(4px);
+}
+label.checkbox-option:hover::before { opacity: 1; }
+label.checkbox-option:has(input:checked) {
+  border-color: var(--primary-color);
+  color: var(--white);
+}
+label.checkbox-option:has(input:checked)::before { opacity: 1; }
+
+/* Custom checkbox */
+label.checkbox-option input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 17px; height: 17px;
+  min-width: 17px;
+  border: 1.5px solid rgba(255,255,255,.2);
+  border-radius: 4px;
+  background: rgba(0,0,0,.25);
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  transition: all .18s;
+}
+label.checkbox-option input[type="checkbox"]:checked {
+  border-color: var(--primary-color);
+  background: var(--primary-color);
+}
+label.checkbox-option input[type="checkbox"]:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 11px;
+  color: var(--white);
+  font-weight: 700;
+}
+label.checkbox-option span {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Scale group ── */
+.scale-group {
+  display: flex;
+  flex-direction: column;
+  gap: .55rem;
+}
+.scale-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: .7rem;
+  color: rgba(252,232,229,.35);
+  font-weight: 500;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+.scale-options {
+  display: flex;
+  gap: .4rem;
+}
+
+/* Scale option — label wrapping hidden radio + visible span */
+label.scale-option {
+  flex: 1;
+  display: block;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  margin-bottom: 0;
+}
+label.scale-option input[type="radio"] {
+  display: none;
+}
+label.scale-option span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: .65rem .2rem;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,.02);
+  color: rgba(252,232,229,.4);
+  font-size: .9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .18s;
+  text-align: center;
+}
+label.scale-option:hover span {
+  border-color: rgba(227,31,1,.4);
+  color: var(--primary-color);
+  background: var(--red-glow);
+}
+label.scale-option input[type="radio"]:checked + span {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: var(--white);
+  box-shadow: 0 4px 16px rgba(227,31,1,.4);
+  transform: translateY(-2px);
+}
+
+/* ── Textarea & email input ── */
+textarea.textarea,
+input.input,
+input[type="email"] {
+  width: 100%;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: var(--radius-sm);
+  padding: .85rem 1rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: .9rem;
+  color: var(--text-light);
+  outline: none;
+  transition: border .2s, box-shadow .2s;
+  line-height: 1.65;
+}
+textarea.textarea {
+  resize: vertical;
+  min-height: 95px;
+}
+textarea.textarea::placeholder,
+input.input::placeholder,
+input[type="email"]::placeholder { color: rgba(252,232,229,.2); }
+textarea.textarea:focus,
+input.input:focus,
+input[type="email"]:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(227,31,1,.12);
+}
+
+/* ── Form actions ── */
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  gap: 1rem;
+}
+
+.btn {
+  font-family: 'DM Sans', sans-serif;
+  font-size: .85rem;
+  font-weight: 700;
+  padding: .8rem 2rem;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  transition: all .2s;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.btn-secondary {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,.12);
+  color: rgba(252,232,229,.5);
+}
+.btn-secondary:hover {
+  border-color: rgba(227,31,1,.4);
+  color: var(--primary-color);
+}
+.btn-primary {
+  background: var(--primary-color);
+  color: var(--white);
+  box-shadow: 0 4px 20px rgba(227,31,1,.35);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(227,31,1,.5);
+}
+.btn-primary:active { transform: translateY(0); }
+.btn-success {
+  background: var(--success-color);
+  color: var(--white);
+  box-shadow: 0 4px 20px rgba(16,185,129,.3);
+}
+.btn-success:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(16,185,129,.45);
+}
+
+/* ── Responsive ── */
+@media (max-width: 560px) {
+  .survey-section > legend { padding: 1.2rem 1.2rem 1rem; font-size: 1.6rem; }
+  .form-group { padding: 1.2rem 1.2rem; }
+  .survey-header h1 { font-size: 2.8rem; }
+  label.scale-option span { font-size: .78rem; padding: .55rem .1rem; }
+  .form-actions { flex-direction: column-reverse; }
+  .btn { width: 100%; text-align: center; }
+}
+
+/* ── Logo ── */
+.logo-wrap {
+  margin-bottom: 1rem;
+}
+.logo-img {
+  height: 80px;
+  width: auto;
+  /* mix-blend-mode makes the black background transparent */
+  mix-blend-mode: screen;
+  filter: brightness(3.5) sepia(1) hue-rotate(330deg) saturate(2);
+}
+.logo-img--sm {
+  height: 50px;
+  margin-bottom: 1rem;
+}
+
+/* ── Error banner ── */
+.error-banner {
+  background: rgba(239,68,68,.1);
+  border: 1px solid rgba(239,68,68,.3);
+  border-radius: var(--radius);
+  padding: 1rem 1.5rem;
+  color: #fca5a5;
+  font-size: .9rem;
+}
+
+/* ── Success page ── */
+.success-content {
+  text-align: center;
+  padding: 1rem 0;
+}
+.success-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  background: rgba(16,185,129,.15);
+  border: 1px solid rgba(16,185,129,.3);
+  font-size: 1.6rem;
+  color: var(--success-color);
+  margin-bottom: 1.2rem;
+  animation: pop .5s cubic-bezier(.4,0,.2,1);
+}
+@keyframes pop {
+  from { transform: scale(0); }
+  80%  { transform: scale(1.15); }
+  to   { transform: scale(1); }
+}
+.success-content h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.5rem;
+  letter-spacing: .05em;
+  color: var(--white);
+  margin-bottom: .4rem;
+}
+.success-sub {
+  font-size: .9rem;
+  color: rgba(252,232,229,.5);
+  margin-bottom: 2rem;
+}
+
+/* ── Summary grid ── */
+.summary-grid {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  text-align: left;
+  margin-top: .5rem;
+}
+.summary-item {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.07);
+  border-left: 3px solid var(--primary-color);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: .85rem 1.1rem;
+}
+.summary-q {
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: rgba(252,232,229,.4);
+  margin-bottom: .3rem;
+}
+.summary-a {
+  font-size: .92rem;
+  color: var(--white);
+  font-weight: 500;
+  line-height: 1.5;
+}

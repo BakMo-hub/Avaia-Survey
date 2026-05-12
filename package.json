@@ -1,0 +1,27 @@
+{
+  "name": "avaia-survey",
+  "version": "1.0.0",
+  "description": "Public interest survey web app for Avaia - AI-powered group travel bill-splitting app",
+  "main": "index.html",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "serve": "npx http-server -p 8000 -o",
+    "build": "echo 'No build step required - this is a static site'",
+    "test": "echo 'No tests configured yet'"
+  },
+  "keywords": [
+    "survey",
+    "travel",
+    "bill-splitting",
+    "expense-sharing",
+    "ai"
+  ],
+  "author": "Avaia Team",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^2.2.2",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  }
+}
