@@ -1,4 +1,4 @@
-const TOTAL_SECTIONS = 6;
+const WEB3FORMS_KEY = '3f41747f-8f00-47e1-9b6a-37e858158c8a';
 let currentSection = 0;
 const surveyForm = document.getElementById('surveyForm');
 const sections = document.querySelectorAll('.survey-section');
