@@ -84,7 +84,7 @@ async function submitToFormspree() {
     saveSurveyState();
     const formData = new FormData(surveyForm);
     try {
-        const response = await fetch('https://formspree.io/f/xykoozrq', {
+        const response = await fetch('https://api.web3forms.com/submit', {
             method: 'POST',
             body: formData,
             headers: { 'Accept': 'application/json' }
