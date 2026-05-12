@@ -521,7 +521,6 @@ input[type="email"]:focus {
 .logo-img {
   height: 80px;
   width: auto;
-  /* mix-blend-mode makes the black background transparent */
   mix-blend-mode: screen;
   filter: brightness(3.5) sepia(1) hue-rotate(330deg) saturate(2);
 }
