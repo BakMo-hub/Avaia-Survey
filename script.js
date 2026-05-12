@@ -1,176 +1,172 @@
-const WEB3FORMS_KEY = '3f41747f-8f00-47e1-9b6a-37e858158c8a';
-let currentSection = 0;
-const surveyForm = document.getElementById('surveyForm');
-const sections = document.querySelectorAll('.survey-section');
+/* ═══════════════════════════════════════════════════
+   Avaia Survey — script.js
+   Multi-step navigation + Web3Forms submission
+   ═══════════════════════════════════════════════════
 
-const FIELD_LABELS = {
-    travelFrequency:     'How often do you travel with a group?',
-    groupSize:           'Typical group size',
-    multiCurrency:       'Group travels with different currencies?',
-    currencyDifficulty:  'Difficulty splitting costs (1 = easy, 5 = hard)',
-    biggestChallenge:    'Biggest challenge managing group expenses',
-    disputes:            'Had disputes over who owes what?',
-    currentMethod:       'Current method for splitting expenses',
-    currentSatisfaction: 'Satisfaction with current method (1 = low, 5 = high)',
-    desiredFeatures:     'Most valuable features',
-    pricingModel:        'Preferred pricing model',
-    additionalComments:  'Additional suggestions',
-    email:               'Email for early access'
-};
+   SETUP: Replace the value below with your free key
+   from https://web3forms.com
+   ═══════════════════════════════════════════════════ */
 
-document.addEventListener('DOMContentLoaded', () => {
-    initSurvey();
-    setupEventListeners();
-    restoreSurveyState();
-});
+const WEB3FORMS_KEY = 'YOUR_ACCESS_KEY_HERE';
 
-function initSurvey() {
-    if (sections.length === 0) return;
-    showSection(0);
-    updateProgressBar();
-    updateButtonStates();
+const TOTAL_SECTIONS = 4;
+
+/* ── Progress ── */
+function updateProgress(step) {
+  const pct = ((step - 1) / TOTAL_SECTIONS) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('currentStep').textContent = step;
 }
 
-function setupEventListeners() {
-    document.getElementById('nextBtn').addEventListener('click', nextSection);
-    document.getElementById('prevBtn').addEventListener('click', prevSection);
-    surveyForm.addEventListener('change', saveSurveyState);
-    surveyForm.addEventListener('input', saveSurveyState);
-    document.getElementById('submitBtn').addEventListener('click', function(e) {
-        e.preventDefault();
-        submitToFormspree();
+/* ── Show a section ── */
+function showSection(n) {
+  document.querySelectorAll('.survey-section').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById('section-' + n);
+  if (target) target.classList.add('active');
+  updateProgress(n);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ── Next ── */
+function goNext(currentSection) {
+  if (currentSection < TOTAL_SECTIONS) {
+    showSection(currentSection + 1);
+  }
+}
+
+/* ── Back ── */
+function goPrev(currentSection) {
+  if (currentSection > 1) {
+    showSection(currentSection - 1);
+  }
+}
+
+/* ── Collect all answers ── */
+function collectAnswers() {
+  const get   = name => {
+    const el = document.querySelector(`input[name="${name}"]:checked`);
+    return el ? el.value : 'Not answered';
+  };
+
+  const checks = () =>
+    [...document.querySelectorAll('input[name="features"]:checked')]
+      .map(c => c.value).join(', ') || 'None selected';
+
+  return {
+    role:             get('role'),
+    frequency:        get('frequency'),
+    group_size:       get('group_size'),
+    frustration:      get('frustration'),
+    current_solution: get('current_solution'),
+    satisfaction:     get('satisfaction') + ' / 5',
+    features:         checks(),
+    nps:              get('nps') + ' / 10',
+    followup:         get('followup'),
+    name:             document.getElementById('f_name').value.trim()  || '(not provided)',
+    email:            document.getElementById('f_email').value.trim() || '(not provided)',
+    comments:         document.getElementById('f_comments').value.trim() || '(none)',
+  };
+}
+
+/* ── Render summary on success screen ── */
+function renderSummary(data) {
+  const labels = {
+    role:             'Traveller type',
+    frequency:        'Trip frequency',
+    group_size:       'Group size',
+    frustration:      'Biggest frustration',
+    current_solution: 'Current solution',
+    satisfaction:     'Satisfaction score',
+    features:         'Desired features',
+    nps:              'NPS score',
+    followup:         'Follow-up consent',
+    comments:         'Additional comments',
+  };
+
+  const grid = document.getElementById('summaryGrid');
+  grid.innerHTML = Object.entries(labels).map(([key, label]) => `
+    <div class="summary-item">
+      <div class="summary-q">${label}</div>
+      <div class="summary-a">${data[key]}</div>
+    </div>
+  `).join('');
+}
+
+/* ── Submit to Web3Forms ── */
+async function submitSurvey() {
+  const name  = document.getElementById('f_name').value.trim();
+  const email = document.getElementById('f_email').value.trim();
+
+  if (!name || !email) {
+    alert('Please fill in your name and email before submitting.');
+    return;
+  }
+
+  const btn = document.getElementById('submitBtn');
+  btn.textContent = 'Sending…';
+  btn.disabled = true;
+
+  const answers = collectAnswers();
+
+  /* Build form data for Web3Forms */
+  const payload = new FormData();
+  payload.append('access_key', WEB3FORMS_KEY);
+  payload.append('subject',    'New Avaia Survey Response');
+  payload.append('from_name',  'Avaia Survey');
+  payload.append('botcheck',   '');
+
+  /* Respondent identity */
+  payload.append('name',  answers.name);
+  payload.append('email', answers.email);
+
+  /* Survey answers */
+  payload.append('Traveller type',      answers.role);
+  payload.append('Trip frequency',      answers.frequency);
+  payload.append('Group size',          answers.group_size);
+  payload.append('Biggest frustration', answers.frustration);
+  payload.append('Current solution',    answers.current_solution);
+  payload.append('Satisfaction (1-5)',  answers.satisfaction);
+  payload.append('Desired features',    answers.features);
+  payload.append('NPS (0-10)',          answers.nps);
+  payload.append('Follow-up consent',   answers.followup);
+  payload.append('Additional comments', answers.comments);
+
+  try {
+    const res  = await fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      body:   payload,
     });
-}
+    const data = await res.json();
 
-function showSection(index) {
-    sections.forEach(section => section.classList.remove('active'));
-    if (sections[index]) {
-        sections[index].classList.add('active');
-        currentSection = index;
-        updateProgressBar();
-        updateButtonStates();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (data.success) {
+      /* Hide all sections and header progress */
+      document.querySelectorAll('.survey-section').forEach(s => s.style.display = 'none');
+      document.getElementById('progressFill').parentElement.style.display = 'none';
+      document.querySelector('.progress-text').style.display = 'none';
+
+      /* Show success */
+      const screen = document.getElementById('successScreen');
+      screen.style.display = 'block';
+      screen.scrollIntoView({ behavior: 'smooth' });
+
+      renderSummary(answers);
+    } else {
+      showError();
+      btn.textContent = 'Submit ✈';
+      btn.disabled = false;
     }
+  } catch (err) {
+    showError();
+    btn.textContent = 'Submit ✈';
+    btn.disabled = false;
+  }
 }
 
-function nextSection() {
-    if (currentSection < sections.length - 1) {
-        showSection(currentSection + 1);
-    }
+function showError() {
+  const banner = document.getElementById('errorBanner');
+  banner.style.display = 'block';
+  banner.scrollIntoView({ behavior: 'smooth' });
 }
 
-function prevSection() {
-    if (currentSection > 0) {
-        showSection(currentSection - 1);
-    }
-}
-
-function updateProgressBar() {
-    const pct = ((currentSection + 1) / TOTAL_SECTIONS) * 100;
-    document.getElementById('progressFill').style.width = pct + '%';
-    document.getElementById('currentSection').textContent = currentSection + 1;
-}
-
-function updateButtonStates() {
-    const prevBtn   = document.getElementById('prevBtn');
-    const nextBtn   = document.getElementById('nextBtn');
-    const submitBtn = document.getElementById('submitBtn');
-    prevBtn.style.display   = currentSection === 0 ? 'none' : 'block';
-    nextBtn.style.display   = currentSection === sections.length - 1 ? 'none' : 'block';
-    submitBtn.style.display = currentSection === sections.length - 1 ? 'block' : 'none';
-}
-
-async function submitToFormspree() {
-    saveSurveyState();
-    const formData = new FormData(surveyForm);
-    try {
-        const response = await fetch('https://api.web3forms.com/submit', {
-            method: 'POST',
-            body: formData,
-            headers: { 'Accept': 'application/json' }
-        });
-        if (response.ok) {
-            showThankYou();
-        } else {
-            showThankYou();
-        }
-    } catch (err) {
-        showThankYou();
-    }
-}
-
-function showThankYou() {
-    surveyForm.style.display = 'none';
-    document.querySelector('.progress-bar').style.display = 'none';
-    document.querySelector('.progress-text').style.display = 'none';
-
-    const saved = localStorage.getItem('avaiasurvey_state');
-    let data = {};
-    if (saved) {
-        try { data = JSON.parse(saved); } catch(e) {}
-    }
-
-    const order = [
-        'travelFrequency','groupSize','multiCurrency',
-        'currencyDifficulty','biggestChallenge','disputes',
-        'currentMethod','currentSatisfaction',
-        'desiredFeatures','pricingModel',
-        'additionalComments','email'
-    ];
-
-    let summaryHTML = '';
-    order.forEach(key => {
-        let value = data[key];
-        if (!value || (Array.isArray(value) && value.length === 0)) return;
-        if (Array.isArray(value)) value = value.join(', ');
-        value = String(value).trim();
-        if (!value) return;
-        const label = FIELD_LABELS[key] || key;
-        summaryHTML += '<div class="summary-item"><div class="summary-q">' + label + '</div><div class="summary-a">' + value + '</div></div>';
-    });
-
-    const successEl = document.getElementById('successMessage');
-    document.getElementById('summaryContent').innerHTML = summaryHTML || '<p style="color:rgba(252,232,229,.4)">No answers recorded.</p>';
-    successEl.style.display = 'block';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function saveSurveyState() {
-    const formData = new FormData(surveyForm);
-    const data = {};
-    for (const [key, value] of formData.entries()) {
-        if (data[key]) {
-            data[key] = Array.isArray(data[key]) ? [...data[key], value] : [data[key], value];
-        } else {
-            data[key] = value;
-        }
-    }
-    localStorage.setItem('avaiasurvey_state', JSON.stringify(data));
-}
-
-function restoreSurveyState() {
-    const saved = localStorage.getItem('avaiasurvey_state');
-    if (!saved) return;
-    try {
-        const data = JSON.parse(saved);
-        Object.keys(data).forEach(key => {
-            const value = data[key];
-            if (Array.isArray(value)) {
-                value.forEach(v => {
-                    const input = document.querySelector('input[name="' + key + '"][value="' + v + '"]');
-                    if (input) input.checked = true;
-                });
-            } else {
-                const input = document.querySelector('input[name="' + key + '"], textarea[name="' + key + '"]');
-                if (input) {
-                    if (input.type === 'radio' || input.type === 'checkbox') {
-                        const specific = document.querySelector('input[name="' + key + '"][value="' + value + '"]');
-                        if (specific) specific.checked = true;
-                    } else {
-                        input.value = value;
-                    }
-                }
-            }
-        });
-    } catch(e) { console.error('Error restoring state:', e); }
-}
+/* ── Init ── */
+updateProgress(1);
